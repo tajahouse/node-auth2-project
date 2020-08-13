@@ -1,5 +1,6 @@
 const express = require("express")
 const bcrypt = require("bcryptjs")
+const jwt = require('jsonwebtoken')
 const Users = require("./users-model")
 const restrict = require("../middleware/restrict")
 
@@ -46,7 +47,6 @@ router.post("/login", async (req, res, next) => {
 				message: "Invalid Credentials",
 			})
 		}
-
 		// hash the password again and see if it matches what we have in the database
 		const passwordValid = await bcrypt.compare(password, user.password)
 
@@ -58,10 +58,17 @@ router.post("/login", async (req, res, next) => {
 
 		// generate a new session for this user,
 		// and sends back a session ID
-		req.session.user = user
+        // req.session.user = user
+        
+        const payload = {
+                userId: user.id,
+                uername: user.username,
+                //in a full application you would put userRole: "normal", It would usually come from your database
+        }
 
 		res.json({
-			message: `Welcome ${user.username}!`,
+            message: `Welcome ${user.username}!`,
+            token: jwt.sign(payload, "all mine, not yours"),
 		})
 	} catch(err) {
 		next(err)
